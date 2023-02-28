@@ -1,6 +1,7 @@
 package com.nowcoder.community.controller;
 
 import com.nowcoder.community.service.AlphaService;
+import com.nowcoder.community.util.CommunityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -8,6 +9,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -54,6 +57,21 @@ public class AlphaController {
         map.put("name","ss");
         map.put("age",22);
         return map;
+
+    }
+
+    @RequestMapping(path = "/cookie/set" , method = RequestMethod.GET)
+    @ResponseBody
+    public String getCookie(HttpServletResponse httpServletResponse){
+        //创建Cookie
+        Cookie cookie = new Cookie("code", CommunityUtil.generateUUID());
+        //设置生效范围
+        cookie.setPath("/community/alpha");
+        //设置生存时间
+        cookie.setMaxAge(10 * 60);
+        //发送Cookie
+        httpServletResponse.addCookie(cookie);
+        return "add cookie";
 
     }
 
