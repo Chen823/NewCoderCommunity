@@ -39,4 +39,8 @@ public class DiscussPostMapperService {
         //插入数据
         return discussPostMapper.insertDiscussPost(discussPost);
     }
+
+    public DiscussPost findDiscussPostById(int userId){
+       return discussPostMapper.selectDiscussPostById(userId);
+    }
 }
