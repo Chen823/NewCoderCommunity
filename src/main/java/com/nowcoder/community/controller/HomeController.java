@@ -25,7 +25,7 @@ public class HomeController {
     public String getIndexPage(Model model, Page page){
         page.setTotal(discussPostMapperService.findDiscussPostRows(0));
         page.setPath("/index");
-        List<DiscussPost> list = discussPostMapperService.findDiscussPost(0,page.getCurPage(),page.getLimit());
+        List<DiscussPost> list = discussPostMapperService.findDiscussPost(0,page.getOffset(),page.getLimit());
         List<Map<String, User>> discussPost = new ArrayList<>();
         if(list != null){
             for(DiscussPost key : list){

@@ -21,4 +21,14 @@ public interface CommunityConstant {
      * 勾选记住后的生存时间
      */
     int REMEMBERME_EXPIRED_TIME =  24 * 3600;
+
+    /**
+     * 帖子评论 状态量
+     */
+    int ENTITY_TYPE_COMMENT = 1;
+
+    /**
+     * 评论回复 状态量
+     */
+    int ENTITY_TYPE_REPLY = 2;
 }

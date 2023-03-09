@@ -67,7 +67,8 @@ public class Page {
      * @return
      */
     public int getStartPage(){
-        return curPage - 2 >= 1 ? curPage - 2 : 1;
+        int startPage = curPage - 2;
+        return startPage >= 1 ? startPage : 1;
     }
 
     /**
@@ -75,6 +76,8 @@ public class Page {
      * @return
      */
     public int getEndPage(){
-        return curPage + 2 <= total ? curPage + 2 : total;
+        int endPage = curPage + 2;
+        int totalPage = getTotalPage();
+        return endPage > totalPage ? totalPage : endPage;
     }
 }
