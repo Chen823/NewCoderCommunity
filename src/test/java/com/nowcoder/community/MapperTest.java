@@ -1,7 +1,9 @@
 package com.nowcoder.community;
 import com.nowcoder.community.dao.DiscussPostMapper;
+import com.nowcoder.community.dao.MessageMapper;
 import com.nowcoder.community.dao.UserMapper;
 import com.nowcoder.community.entity.DiscussPost;
+import com.nowcoder.community.entity.Message;
 import com.nowcoder.community.entity.User;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +23,9 @@ public class MapperTest {
     private UserMapper userMapper;
     @Autowired
     private DiscussPostMapper discussPostMapper;
+
+    @Autowired
+    private MessageMapper messageMapper;
     @Test
     public void selectTest() {
         User user = userMapper.selectById(101);
@@ -56,6 +61,25 @@ public class MapperTest {
         for(DiscussPost i : list){
             System.out.println(i);
         }
+    }
+
+    @Test
+    public void MessageTest(){
+        List<Message> messages = messageMapper.selectConversationById(111, 0, 20);
+        for(Message message : messages){
+            System.out.println(message);
+        }
+
+        System.out.println(messageMapper.selectConversationCount(111));
+
+        List<Message> messages1 = messageMapper.selectMessageById("111_112", 0, 20);
+        for(Message message : messages1){
+            System.out.println(message);
+        }
+        System.out.println(messageMapper.selectMessageCount("111_112"));
+        System.out.println(messageMapper.selectUncheckedCount(131, "111_131"));
+
+
     }
 
 

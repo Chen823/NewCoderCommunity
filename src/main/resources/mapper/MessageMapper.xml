@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.nowcoder.community.dao.MessageMapper">
+    <sql id="selectFields">
+        id,from_id,to_id,conversation_id,content,status,create_time
+    </sql>
+
+    <sql id="insertFields">
+        from_id,to_id,conversation_id,content,status,create_time
+    </sql>
+
+    <select id="selectConversationById" resultType="Message">
+        SELECT <include refid="selectFields"></include>
+        FROM message
+        WHERE id IN
+        (SELECT MAX(id) FROM message
+         WHERE from_id = #{userId} OR to_id = #{userId}
+         AND from_id != 1
+         AND status != 2
+        GROUP BY conversation_id)
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="selectConversationCount" resultType="int">
+        SELECT count(id)
+        FROM message
+        WHERE id IN
+        (SELECT MAX(id) FROM message
+        WHERE from_id = #{userId} OR to_id = #{userId}
+        AND from_id != 1
+        GROUP BY conversation_id)
+    </select>
+
+    <select id="selectMessageById" resultType="Message">
+        SELECT <include refid="selectFields"></include>
+        FROM message
+        WHERE conversation_id = #{conversationId}
+        AND from_id != 1
+        and status != 2
+        order by create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="selectMessageCount" resultType="int">
+        SELECT count(id)
+        FROM message
+        WHERE conversation_id = #{conversationId}
+        and status != 2
+        AND from_id != 1
+    </select>
+
+    <select id="selectUncheckedCount" resultType="int">
+        SELECT count(id)
+        FROM message
+        WHERE to_id = #{userId}
+        AND from_id != 1
+        and status = 0
+        <if test="conversationId != null">
+            and conversation_id = #{conversationId}
+        </if>
+    </select>
+
+</mapper>
