@@ -17,4 +17,10 @@ public interface MessageMapper {
     int selectMessageCount(String conversationId);
     //查询未读会话/消息的数量
     int selectUncheckedCount(int userId, String conversationId);
+    //插入信息
+    int insertMessage(Message message);
+    //更新Message状态
+    int updateMessageStatusById(List<Integer> ids,int status);
+
+
 }

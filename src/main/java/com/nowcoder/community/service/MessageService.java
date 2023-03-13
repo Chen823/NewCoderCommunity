@@ -4,6 +4,7 @@ import com.nowcoder.community.dao.MessageMapper;
 import com.nowcoder.community.entity.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.util.HtmlUtils;
 
 import java.util.List;
 
@@ -30,6 +31,21 @@ public class MessageService {
     //查询未读会话/消息的数量
     public int findUncheckedCount(int userId, String conversationId){
         return messageMapper.selectUncheckedCount(userId,conversationId);
+    }
+
+    //新增消息
+    public int addMessage(Message message){
+        //去html标签
+        message.setContent(HtmlUtils.htmlEscape(message.getContent()));
+        //敏感词过滤
+        message.setContent(HtmlUtils.htmlEscape(message.getContent()));
+        return messageMapper.insertMessage(message);
+    }
+
+    //更新消息状态
+    public int updateStatus(List<Integer> ids, int status){
+        if(ids != null)  return messageMapper.updateMessageStatusById(ids,status);
+        return 0;
     }
 
 

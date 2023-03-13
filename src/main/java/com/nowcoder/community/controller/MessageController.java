@@ -5,6 +5,7 @@ import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.MessageService;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -12,6 +13,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 
 import java.util.*;
 
@@ -56,6 +58,18 @@ public class MessageController {
         return "/site/letter";
     }
 
+    public List<Integer> getUncheckedMessageId(List<Message> messages){
+        List<Integer> ids = new ArrayList<>();
+        if(messages != null){
+            for(Message m : messages){
+                if(m.getToId() == hostHolder.getUser().getId() && m.getStatus() == 0){
+                    ids.add(m.getId());
+                }
+            }
+        }
+        return ids;
+    }
+
     @RequestMapping(path = "/letter/detail/{conversationId}" , method = RequestMethod.GET)
     public String getMessageList(@PathVariable("conversationId") String conversationId, Model model, Page page) {
         //设置分页
@@ -79,8 +93,40 @@ public class MessageController {
 
         model.addAttribute("fromUser",fromUser);
         model.addAttribute("messages",list);
+        //已读标记
+        List<Integer> ids = getUncheckedMessageId(message);
+        if(ids.size() != 0){
+            messageService.updateStatus(ids,1);
+        }
         return "/site/letter-detail";
     }
+
+    @RequestMapping(path = "/letter/send" , method = RequestMethod.POST)
+    @ResponseBody
+    public String sendMessage(String toName, String content) {
+        if(content == null){
+            return CommunityUtil.getJSONString(1,"发送内容不能为空！");
+        }
+        if(toName == null){
+            return CommunityUtil.getJSONString(1,"发送对象不能为空！");
+        }
+        Message message = new Message();
+        message.setContent(content);
+        message.setCreateTime(new Date());
+        message.setStatus(0);
+        int fromId = hostHolder.getUser().getId();
+        message.setFromId(fromId);
+        if(userService.findByName(toName) == null){
+            return CommunityUtil.getJSONString(1,"发送用户不存在！");
+        }
+        int toId = userService.findByName(toName).getId();
+        message.setToId(toId);
+        String conversationId = fromId > toId ? toId + "_" + fromId : fromId + "_" + toId;
+        message.setConversationId(conversationId);
+        messageService.addMessage(message);
+        return CommunityUtil.getJSONString(0,"发送成功");
+    }
+
 
 }
 
