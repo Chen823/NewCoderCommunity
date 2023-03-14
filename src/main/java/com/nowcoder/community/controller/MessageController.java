@@ -1,5 +1,6 @@
 package com.nowcoder.community.controller;
 
+import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.entity.Message;
 import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
@@ -28,7 +29,7 @@ public class MessageController {
     @Autowired
     UserService userService;
 
-
+    @LoginRequired
     @RequestMapping(path = "/letter/list" , method = RequestMethod.GET)
     public String getConversationList(Model model, Page page) {
         User user = hostHolder.getUser();
@@ -69,9 +70,10 @@ public class MessageController {
         }
         return ids;
     }
-
+    @LoginRequired
     @RequestMapping(path = "/letter/detail/{conversationId}" , method = RequestMethod.GET)
     public String getMessageList(@PathVariable("conversationId") String conversationId, Model model, Page page) {
+
         //设置分页
         page.setTotal(messageService.findMessageCount(conversationId));
         page.setLimit(5);
@@ -104,6 +106,7 @@ public class MessageController {
     @RequestMapping(path = "/letter/send" , method = RequestMethod.POST)
     @ResponseBody
     public String sendMessage(String toName, String content) {
+
         if(content == null){
             return CommunityUtil.getJSONString(1,"发送内容不能为空！");
         }
@@ -124,7 +127,14 @@ public class MessageController {
         String conversationId = fromId > toId ? toId + "_" + fromId : fromId + "_" + toId;
         message.setConversationId(conversationId);
         messageService.addMessage(message);
-        return CommunityUtil.getJSONString(0,"发送成功");
+        return CommunityUtil.getJSONString(0,"发送成功！");
+    }
+
+    @RequestMapping(path = "/letter/delete" , method = RequestMethod.POST)
+    @ResponseBody
+    public String sendMessage(int deleteMessageId) {
+       messageService.deleteMessage(deleteMessageId);
+        return CommunityUtil.getJSONString(0,"删除成功！");
     }
 
 

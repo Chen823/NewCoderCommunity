@@ -22,5 +22,7 @@ public interface MessageMapper {
     //更新Message状态
     int updateMessageStatusById(List<Integer> ids,int status);
 
+    int deleteMessageById(int id);
+
 
 }

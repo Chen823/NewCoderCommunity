@@ -48,5 +48,9 @@ public class MessageService {
         return 0;
     }
 
+    public int deleteMessage(int id){
+        return messageMapper.deleteMessageById(id);
+    }
+
 
 }
