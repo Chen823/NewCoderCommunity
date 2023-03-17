@@ -7,6 +7,7 @@ import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostMapperService;
+import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
@@ -37,6 +38,9 @@ public class DiscussPostController implements CommunityConstant {
     @Autowired
     private CommentService commentService;
 
+    @Autowired
+    private LikeService likeService;
+
 
     @RequestMapping(path = "/add" , method = RequestMethod.POST)
     @ResponseBody
@@ -65,6 +69,12 @@ public class DiscussPostController implements CommunityConstant {
         //发帖用户
         User user = userService.findUserById(discussPost.getUserId());
         model.addAttribute("user",user);
+        //帖子点赞数量
+        long likeCount = likeService.getLikeCount(ENTITY_TYPE_COMMENT, discussPost.getId());
+        model.addAttribute("likeCount",likeCount);
+        //帖子点赞状态
+        User loginUser = hostHolder.getUser();
+        int likeStatus = loginUser == null ? 0 : likeService.getLikeStatus(loginUser.getId(),ENTITY_TYPE_COMMENT,discussPost.getId());
         //设置分页
         page.setLimit(5);
         page.setPath("/discuss/detail/" + discussPostId);
@@ -80,6 +90,12 @@ public class DiscussPostController implements CommunityConstant {
                 commentVo.put("comment",comment);
                 //评论作者
                 commentVo.put("user",userService.findUserById(comment.getUserId()));
+                //评论的点赞数目
+                long commentLikeCount = likeService.getLikeCount(ENTITY_TYPE_REPLY, comment.getId());
+                commentVo.put("commentLikeCount",commentLikeCount);
+                //获取点赞的状态
+                int commentLikeStatus = loginUser == null ? 0 : likeService.getLikeStatus(loginUser.getId(),ENTITY_TYPE_REPLY,comment.getId());
+                commentVo.put("commentLikeStatus",commentLikeStatus);
                 //获取评论的回复
                 List<Map<String,Object>> replyVoList = new ArrayList<>();
                 List<Comment> replyList = commentService.findComment(ENTITY_TYPE_REPLY, comment.getId(), 0, Integer.MAX_VALUE);
@@ -93,6 +109,12 @@ public class DiscussPostController implements CommunityConstant {
                             //添加target(如果有)
                                 User target = reply.getTargetId() == 0 ? null : userService.findUserById(reply.getTargetId());
                                 replyVo.put("target",target);
+                            //获取评论的回复的点赞
+                            long replyLikeCount = likeService.getLikeCount(ENTITY_TYPE_REPLY, reply.getId());
+                            replyVo.put("replyLikeCount",replyLikeCount);
+                            //获取评论的回复的点赞的状态
+                            int replyLikeStatus = loginUser == null ? 0 : likeService.getLikeStatus(loginUser.getId(),ENTITY_TYPE_REPLY,reply.getId());
+                            replyVo.put("replyLikeStatus",replyLikeStatus);
                             //添加到replyVoList中
                             replyVoList.add(replyVo);
                         }
