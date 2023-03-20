@@ -28,6 +28,10 @@ public class CommentService implements CommunityConstant {
         return commentMapper.selectComment(entityType,entityId,offset,limit);
     }
 
+    public List<Comment> findCommentById(int entityType, int userId, int offset, int limit){
+        return commentMapper.selectCommentById(entityType,userId,offset,limit);
+    }
+
     public int findCommentRow(int entityType, int entityId){
         return commentMapper.selectCommentRow(entityType,entityId);
     }
@@ -48,6 +52,10 @@ public class CommentService implements CommunityConstant {
             discussPostMapperService.updateCommentCount(count, comment.getEntityId());
         }
         return rows;
+    }
+
+    public int findCommentRowById(int entityType, int userId){
+        return commentMapper.selectCommentRowById(entityType,userId);
     }
 
 }

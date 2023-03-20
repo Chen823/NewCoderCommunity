@@ -2,7 +2,10 @@ package com.nowcoder.community.controller;
 
 import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.entity.User;
+import com.nowcoder.community.service.FollowService;
+import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
 import org.apache.commons.lang.StringUtils;
@@ -27,7 +30,7 @@ import java.nio.file.Path;
 
 @Controller
 @RequestMapping("/user")
-public class UserController {
+public class UserController implements CommunityConstant {
     private static final Logger logger = LoggerFactory.getLogger(LoginController.class);
     @Value("${community.path.upload}")
     private String upload;
@@ -39,10 +42,16 @@ public class UserController {
     private String contextPath;
 
     @Autowired
-    UserService userService;
+    private UserService userService;
 
     @Autowired
-    HostHolder hostHolder;
+    private HostHolder hostHolder;
+
+    @Autowired
+    private LikeService likeService;
+
+    @Autowired
+    private FollowService followService;
 
     @LoginRequired
     @RequestMapping(path = "/setting" , method = RequestMethod.GET)
@@ -125,6 +134,25 @@ public class UserController {
         newPassword = CommunityUtil.md5( newPassword + user.getSalt());
         userService.updatePassword(user.getId(),newPassword);
         return "redirect:/logout";
+    }
+
+    @RequestMapping(path = "/profile/{userId}" , method = RequestMethod.GET)
+    public String getProfile(@PathVariable("userId") int userId, Model model){
+        User user = userService.findUserById(userId);
+        if(user == null){
+            throw  new RuntimeException("该用户不存在！");
+        }
+        model.addAttribute("user",user);
+        int userLikeCount = likeService.getUserLikeCount(userId);
+        model.addAttribute("userLikeCount",userLikeCount);
+        long followeeCount = followService.getFolloweeCount(ENTITY_TYPE_USER, user.getId());
+        model.addAttribute("followeeCount",followeeCount);
+        long followerCount = followService.getFollowerCount(ENTITY_TYPE_USER, user.getId());
+        model.addAttribute("followerCount",followerCount);
+        User loginUser = hostHolder.getUser();
+        boolean isFollow = loginUser != null ? followService.isFollow(loginUser.getId(),ENTITY_TYPE_USER,userId) : false;
+        model.addAttribute("isFollow",isFollow);
+        return "/site/profile";
     }
 }
 

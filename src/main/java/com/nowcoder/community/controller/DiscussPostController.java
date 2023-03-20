@@ -75,6 +75,7 @@ public class DiscussPostController implements CommunityConstant {
         //帖子点赞状态
         User loginUser = hostHolder.getUser();
         int likeStatus = loginUser == null ? 0 : likeService.getLikeStatus(loginUser.getId(),ENTITY_TYPE_COMMENT,discussPost.getId());
+        model.addAttribute("likeStatus",likeStatus);
         //设置分页
         page.setLimit(5);
         page.setPath("/discuss/detail/" + discussPostId);
@@ -132,6 +133,31 @@ public class DiscussPostController implements CommunityConstant {
         model.addAttribute("total",page.getTotal());
         return "site/discuss-detail";
     }
-    
+    //获取某一用户的帖子列表
+    @RequestMapping(path = "/{userId}" , method = RequestMethod.GET)
+    public String getUserDiscussPost(@PathVariable("userId") int userId, Model model, Page page){
+        //设置分页
+        page.setLimit(5);
+        page.setPath("/discuss/" + userId);
+        int postCount = discussPostMapperService.findDiscussPostRows(userId);
+        page.setTotal(postCount);
+        //某一用户的帖子总数
+        model.addAttribute("postCount",postCount);
+        //获取帖子的赞
+        List<DiscussPost> discussPost = discussPostMapperService.findDiscussPost(userId, page.getOffset(), page.getLimit());
+        List<Map<String,Object>> list = new ArrayList<>();
+        if(discussPost != null){
+            for(DiscussPost post : discussPost){
+                Map<String,Object> map = new HashMap<>();
+                long likeCount = likeService.getLikeCount(ENTITY_TYPE_COMMENT, post.getId());
+                map.put("likeCount",likeCount);
+                map.put("post",post);
+                list.add(map);
+            }
+        }
+        model.addAttribute("postList",list);
+        return "/site/my-post";
+    }
+
 
 }

@@ -40,8 +40,8 @@ public class DiscussPostMapperService {
         return discussPostMapper.insertDiscussPost(discussPost);
     }
 
-    public DiscussPost findDiscussPostById(int userId){
-       return discussPostMapper.selectDiscussPostById(userId);
+    public DiscussPost findDiscussPostById(int id){
+       return discussPostMapper.selectDiscussPostById(id);
     }
 
     public int updateCommentCount(int commentCount,int entityId){

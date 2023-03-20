@@ -27,12 +27,12 @@ public class LikeController {
 
     @RequestMapping(path = "/like" , method = RequestMethod.POST)
     @ResponseBody
-    public String setLike(int entityType,int entityId){
+    public String setLike(int entityType,int entityId, int entityUserId){
         User user = hostHolder.getUser();
         if(user == null){
             return CommunityUtil.getJSONString(1,"用户未登录!");
         }
-        likeService.setLike(user.getId(),entityType,entityId);
+        likeService.setLike(user.getId(),entityType,entityId, entityUserId);
         long likeCount = likeService.getLikeCount(entityType, entityId);
         int likeStatus = likeService.getLikeStatus(user.getId(), entityType, entityId);
         Map<String,Object> map = new HashMap<>();

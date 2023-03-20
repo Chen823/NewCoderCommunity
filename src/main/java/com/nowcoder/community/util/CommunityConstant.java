@@ -31,4 +31,9 @@ public interface CommunityConstant {
      * 评论回复 状态量
      */
     int ENTITY_TYPE_REPLY = 2;
+
+    /**
+     * 用户 状态量
+     */
+    int ENTITY_TYPE_USER = 3;
 }
