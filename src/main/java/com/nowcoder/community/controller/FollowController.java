@@ -1,8 +1,10 @@
 package com.nowcoder.community.controller;
 
 import com.nowcoder.community.annotation.LoginRequired;
+import com.nowcoder.community.entity.Event;
 import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
+import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.FollowService;
 import com.nowcoder.community.service.LikeService;
 import com.nowcoder.community.service.UserService;
@@ -31,6 +33,9 @@ public class FollowController implements CommunityConstant {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EventProducer eventProducer;
+
     @RequestMapping(path = "/follow" , method = RequestMethod.POST)
     @ResponseBody
     @LoginRequired
@@ -40,6 +45,14 @@ public class FollowController implements CommunityConstant {
 //            return CommunityUtil.getJSONString(1,"用户未登录!");
 //        }
         followService.follow(user.getId(),entityType,entityId);
+        //发送消息
+        Event event = new Event();
+        event.setTopic(TOPIC_TYPE_FOLLOW)
+                .setUserId(user.getId())
+                .setEntityType(entityType)
+                .setEntityId(entityId)
+                .setEntityUserId(entityId);
+        eventProducer.sendEvent(event);
         return CommunityUtil.getJSONString(0,"关注成功！");
     }
 

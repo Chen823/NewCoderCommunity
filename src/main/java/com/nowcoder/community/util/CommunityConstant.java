@@ -36,4 +36,19 @@ public interface CommunityConstant {
      * 用户 状态量
      */
     int ENTITY_TYPE_USER = 3;
+
+    /**
+     * 主题 关注
+     */
+    String TOPIC_TYPE_FOLLOW = "follow";
+
+    /**
+     * 主题 回复
+     */
+    String TOPIC_TYPE_COMMENT = "comment";
+
+    /**
+     * 主题 点赞
+     */
+    String TOPIC_TYPE_LIKE = "like";
 }

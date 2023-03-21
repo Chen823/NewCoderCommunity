@@ -31,6 +31,9 @@ public class ServiceLogAspect {
         //记录日志格式: 用户[x.x.x.x]在[time]访问了[com.nowcoder.community.service.xxx()].
         //获取ip
         ServletRequestAttributes attributes = (ServletRequestAttributes) RequestContextHolder.getRequestAttributes();
+        if(attributes == null){
+            return;
+        }
         HttpServletRequest request = attributes.getRequest();
         String ip = request.getRemoteHost();
         //获取时间

@@ -2,7 +2,9 @@ package com.nowcoder.community.controller;
 
 import com.nowcoder.community.entity.Comment;
 import com.nowcoder.community.entity.DiscussPost;
+import com.nowcoder.community.entity.Event;
 import com.nowcoder.community.entity.Page;
+import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostMapperService;
 import com.nowcoder.community.util.CommunityConstant;
@@ -26,6 +28,9 @@ public class CommentController implements CommunityConstant{
     DiscussPostMapperService discussPostMapperService;
     @Autowired
     HostHolder hostHolder;
+    @Autowired
+    private EventProducer eventProducer;
+
 
 
     @RequestMapping(path = "/add/{discussPostId}" , method = RequestMethod.POST)
@@ -34,6 +39,23 @@ public class CommentController implements CommunityConstant{
         comment.setCreateTime(new Date());
         comment.setStatus(0);
         commentService.addComment(comment);
+        //发送消息
+        Event event = new Event();
+        event.setTopic(TOPIC_TYPE_COMMENT)
+                .setEntityType(comment.getEntityType())
+                        .setEntityId(comment.getEntityId())
+                                .setUserId(hostHolder.getUser().getId())
+                                        .setData("postId",discussPostId);
+        int entityUserId = 0;
+        if(comment.getEntityType() == ENTITY_TYPE_COMMENT){
+            //说明是给帖子的回复
+            entityUserId = discussPostMapperService.findDiscussPostById(discussPostId).getUserId();
+        }else if(comment.getEntityType() == ENTITY_TYPE_REPLY){
+            //说明是给回复的评论
+            entityUserId = commentService.findSingleCommentById(comment.getEntityId()).getUserId();
+        }
+        event.setEntityUserId(entityUserId);
+        eventProducer.sendEvent(event);
         return "redirect:/discuss/detail/" + discussPostId;
     }
 
