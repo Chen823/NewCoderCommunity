@@ -83,4 +83,53 @@
         where id = #{id}
     </delete>
 
+    <select id="selectNewMessageById" resultType="Message">
+        SELECT <include refid="selectFields"></include>
+        FROM message
+        WHERE
+            to_id = #{userId}
+        and conversation_id = #{topic}
+        ORDER BY create_time DESC
+        LIMIT 1
+    </select>
+
+    <select id="selectMessageCountById" resultType="int">
+        SELECT count(id)
+        FROM message
+        WHERE
+        to_id = #{userId}
+        and conversation_id = #{topic}
+    </select>
+
+    <select id="selectUnreadMessageCountById" resultType="int">
+        SELECT count(id)
+        FROM message
+        WHERE
+            to_id = #{userId}
+          and conversation_id = #{topic}
+          and status = 0
+    </select>
+
+    <select id="selectNoticeById" resultType="Message">
+        SELECT <include refid="selectFields"></include>
+        FROM message
+        WHERE
+            to_id = #{userId}
+        and
+            conversation_id = #{topic}
+        ORDER BY create_time DESC
+        LIMIT #{offset}, #{limit}
+    </select>
+
+    <select id="selectUnreadNoticeCount" resultType="int">
+        SELECT count(id)
+        FROM message
+        WHERE
+        to_id = #{userId}
+        and
+        status = 0
+        and
+        conversation_id IN ('follow','like','comment')
+    </select>
+
 </mapper>

@@ -1,11 +1,13 @@
 package com.nowcoder.community.controller;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.nowcoder.community.annotation.LoginRequired;
 import com.nowcoder.community.entity.Message;
 import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.MessageService;
 import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +21,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.util.*;
 
 @Controller
-public class MessageController {
+public class MessageController implements CommunityConstant {
     @Autowired
     MessageService messageService;
 
@@ -56,6 +58,11 @@ public class MessageController {
         model.addAttribute("conversations",list);
         int uncheckedConversation = messageService.findUncheckedCount(user.getId(), null);
         model.addAttribute("uncheckedConversation",uncheckedConversation);
+        //查询所有未读的系统消息数量
+        int unreadNoticeCount = messageService.findUnreadMessageCount(user.getId(), TOPIC_TYPE_COMMENT) +
+                                messageService.findUnreadMessageCount(user.getId(), TOPIC_TYPE_FOLLOW) +
+                                messageService.findUnreadMessageCount(user.getId(), TOPIC_TYPE_LIKE);
+        model.addAttribute("unreadNoticeCount",unreadNoticeCount);
         return "/site/letter";
     }
 
@@ -136,6 +143,123 @@ public class MessageController {
        messageService.deleteMessage(deleteMessageId);
         return CommunityUtil.getJSONString(0,"删除成功！");
     }
+
+    @LoginRequired
+    @RequestMapping(path = "/letter/notice" , method = RequestMethod.GET)
+    public String getNotice(Model model) {
+        //获取当前登录用户
+        User user = hostHolder.getUser();
+        int userId = user.getId();
+        //系统未读通知总数
+        int unreadNoticeCount = 0;
+        //评论系统通知
+        Message newComment = messageService.findNewMessage(userId, TOPIC_TYPE_COMMENT);
+        Map<String,Object> commentMap = new HashMap();
+        boolean commentIsEmpty = true;
+        if(newComment != null) {
+            Map<String, Integer> commentContentMap = JSONObject.parseObject(newComment.getContent(), HashMap.class);
+            int commentId = commentContentMap.get("userId");
+            int entityType = commentContentMap.get("entityType");
+            int commentCount = messageService.findMessageCount(userId, TOPIC_TYPE_COMMENT);
+            int unreadCommentCount = messageService.findUnreadMessageCount(userId, TOPIC_TYPE_COMMENT);
+            unreadNoticeCount += unreadCommentCount;
+            Date commentCreateTime = newComment.getCreateTime();
+            commentIsEmpty = false;
+            commentMap.put("name", userService.findUserById(commentId).getUsername());
+            commentMap.put("Count", commentCount);
+            commentMap.put("unreadCount", unreadCommentCount);
+            commentMap.put("createTime", commentCreateTime);
+            commentMap.put("entityType", entityType);
+        }
+        commentMap.put("isEmpty",commentIsEmpty);
+        model.addAttribute("commentMap",commentMap);
+        //点赞系统通知
+        Message newLike = messageService.findNewMessage(userId, TOPIC_TYPE_LIKE);
+        Map<String,Object> likeMap = new HashMap();
+        boolean likeIsEmpty = true;
+        if(newLike != null) {
+        Map<String,Integer> likeContentMap = JSONObject.parseObject(newLike.getContent(), HashMap.class);
+        int likeId = likeContentMap.get("userId");
+        int entityType = likeContentMap.get("entityType");
+        int likeCount = messageService.findMessageCount(userId, TOPIC_TYPE_LIKE);
+        int unreadLikeCount = messageService.findUnreadMessageCount(userId, TOPIC_TYPE_LIKE);
+        unreadNoticeCount += unreadLikeCount;
+        Date likeCreateTime = newLike.getCreateTime();
+        likeIsEmpty = false;
+            likeMap.put("name",userService.findUserById(likeId).getUsername());
+            likeMap.put("Count",likeCount);
+            likeMap.put("unreadCount",unreadLikeCount);
+            likeMap.put("createTime",likeCreateTime);
+            likeMap.put("entityType", entityType);
+        }
+        likeMap.put("isEmpty",likeIsEmpty);
+        model.addAttribute("likeMap",likeMap);
+
+
+        //关注系统通知
+        Message newFollow = messageService.findNewMessage(userId, TOPIC_TYPE_FOLLOW);
+        Map<String, Object> followMap = new HashMap();
+        boolean followIsEmpty = true;
+        if(newFollow != null) {
+            Map<String, Integer> followContentMap = JSONObject.parseObject(newFollow.getContent(), HashMap.class);
+            int followId = followContentMap.get("userId");
+            int followCount = messageService.findMessageCount(userId, TOPIC_TYPE_FOLLOW);
+            int unreadFollowCount = messageService.findUnreadMessageCount(userId, TOPIC_TYPE_FOLLOW);
+            unreadNoticeCount += unreadFollowCount;
+            Date followCreateTime = newFollow.getCreateTime();
+            followIsEmpty = false;
+            followMap.put("name", userService.findUserById(followId).getUsername());
+            followMap.put("Count", followCount);
+            followMap.put("unreadCount", unreadFollowCount);
+            followMap.put("createTime", followCreateTime);
+        }
+        followMap.put("isEmpty",followIsEmpty);
+        model.addAttribute("followMap",followMap);
+        model.addAttribute("unreadNoticeCount",unreadNoticeCount);
+        int uncheckedConversation = messageService.findUncheckedCount(userId, null);
+        model.addAttribute("uncheckedConversation",uncheckedConversation);
+        return "/site/notice";
+    }
+
+    @LoginRequired
+    @RequestMapping(path = "/letter/notice/{topic}" , method = RequestMethod.GET)
+    public String getNoticeList(@PathVariable("topic") String topic, Model model, Page page) {
+        //获取当前登录用户
+        User user = hostHolder.getUser();
+        int userId = user.getId();
+        //分页设置
+        page.setPath("/letter/notice/" + topic);
+        page.setLimit(5);
+        page.setTotal(messageService.findMessageCount(userId,topic));
+        List<Map<String,Object>> list = new ArrayList<>();
+        List<Message> messageList = messageService.findNoticeListById(userId, topic, page.getOffset(), page.getLimit());
+        if(messageList != null){
+            for(Message m : messageList){
+                Map map = new HashMap<>();
+                String content = m.getContent();
+                HashMap<String,Object> hashMap = JSONObject.parseObject(content, HashMap.class);
+                int fromId = (int) hashMap.get("userId");
+                int entityType = (int) hashMap.get("entityType");
+                if(!topic.equals(TOPIC_TYPE_FOLLOW)) {
+                    int postId = (int) hashMap.get("postId");
+                    map.put("postId", postId);
+                }
+                map.put("fromUser",userService.findUserById(fromId));
+                map.put("entityType",entityType);
+                map.put("message",m);
+                list.add(map);
+            }
+        }
+        model.addAttribute("topic",topic);
+        model.addAttribute("list",list);
+        //已读设置
+        List<Integer> ids = getUncheckedMessageId(messageList);
+        if(ids.size() != 0){
+            messageService.updateStatus(ids,1);
+        }
+        return "/site/notice-detail";
+    }
+
 
 
 }

@@ -35,10 +35,12 @@ public class MessageService {
 
     //新增消息
     public int addMessage(Message message){
-        //去html标签
-        message.setContent(HtmlUtils.htmlEscape(message.getContent()));
-        //敏感词过滤
-        message.setContent(HtmlUtils.htmlEscape(message.getContent()));
+        if(message.getFromId() != 1){
+            //去html标签
+            message.setContent(HtmlUtils.htmlEscape(message.getContent()));
+            //敏感词过滤
+            message.setContent(HtmlUtils.htmlEscape(message.getContent()));
+        }
         return messageMapper.insertMessage(message);
     }
 
@@ -51,6 +53,26 @@ public class MessageService {
     public int deleteMessage(int id){
         return messageMapper.deleteMessageById(id);
     }
+
+    public Message findNewMessage(int userId, String topic){
+        return messageMapper.selectNewMessageById(userId,topic);
+    }
+
+    public int findMessageCount(int userId, String topic){
+        return messageMapper.selectMessageCountById(userId, topic);
+    }
+    public int findUnreadMessageCount(int userId, String topic){
+        return messageMapper.selectUnreadMessageCountById(userId, topic);
+    }
+
+    public List<Message> findNoticeListById(int userId, String topic, int offset, int limit){
+        return messageMapper.selectNoticeById(userId, topic, offset, limit);
+    }
+
+    public int findUnreadNoticeCount(int userId){
+        return messageMapper.selectUnreadNoticeCount(userId);
+    }
+
 
 
 }

@@ -6,8 +6,10 @@ import com.nowcoder.community.entity.Page;
 import com.nowcoder.community.entity.User;
 import com.nowcoder.community.service.DiscussPostMapperService;
 import com.nowcoder.community.service.LikeService;
+import com.nowcoder.community.service.MessageService;
 import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
+import com.nowcoder.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,6 +26,11 @@ public class HomeController implements CommunityConstant {
     private UserService userService;
     @Autowired
     private LikeService likeService;
+
+    @Autowired
+    private MessageService messageService;
+    @Autowired
+    private HostHolder hostHolder;
     @RequestMapping(path = "/index" , method = RequestMethod.GET)
     public String getIndexPage(Model model, Page page){
         page.setTotal(discussPostMapperService.findDiscussPostRows(0));

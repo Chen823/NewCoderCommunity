@@ -21,8 +21,18 @@ public interface MessageMapper {
     int insertMessage(Message message);
     //更新Message状态
     int updateMessageStatusById(List<Integer> ids,int status);
-
+    //删除某一条信息
     int deleteMessageById(int id);
+    //查询某一主题的最新消息
+    Message selectNewMessageById(int userId, String topic);
+    //查询某一主题的消息数量
+    int selectMessageCountById(int userId, String topic);
+    //查询某一主题的未读数量
+    int selectUnreadMessageCountById(int userId, String topic);
+    //查询某一主题下的系统通知消息列表
+    List<Message> selectNoticeById(int userId,String topic, int offset, int limit);
+
+    int selectUnreadNoticeCount(int userId);
 
 
 }

@@ -41,8 +41,8 @@ public class UserService implements CommunityConstant {
     @Autowired
     private RedisTemplate redisTemplate;
 
-//    @Autowired
-//    private LoginTicketMapper loginTicketMapper;
+    @Autowired
+    private LoginTicketMapper loginTicketMapper;
 
     public User findUserById(int id){
         User user = getCache(id);
