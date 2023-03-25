@@ -51,4 +51,21 @@ public interface CommunityConstant {
      * 主题 点赞
      */
     String TOPIC_TYPE_LIKE = "like";
+
+    /**
+     * 主题 帖子
+     */
+    String TOPIC_TYPE_POST = "post";
+    /**
+     * 权限 普通用户
+     */
+    String AUTHORITY_USER = "user";
+    /**
+     * 权限 管理员
+     */
+    String AUTHORITY_ADMIN = "admin";
+    /**
+     * 权限 版主
+     */
+    String AUTHORITY_MODERATOR = "moderator";
 }

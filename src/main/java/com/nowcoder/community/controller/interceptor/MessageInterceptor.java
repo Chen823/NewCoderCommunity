@@ -25,6 +25,7 @@ public class MessageInterceptor implements HandlerInterceptor {
         if(user != null){
             unreadMessageCount = messageService.findUncheckedCount(user.getId(), null) + messageService.findUnreadNoticeCount(user.getId());
         }
+        if(modelAndView != null)
         modelAndView.addObject("unreadMessageCount",unreadMessageCount);
     }
 }

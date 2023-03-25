@@ -1,13 +1,13 @@
 package com.nowcoder.community.controller;
 
-import com.nowcoder.community.entity.Comment;
-import com.nowcoder.community.entity.DiscussPost;
-import com.nowcoder.community.entity.Event;
-import com.nowcoder.community.entity.Page;
+import com.nowcoder.community.entity.*;
 import com.nowcoder.community.event.EventProducer;
 import com.nowcoder.community.service.CommentService;
 import com.nowcoder.community.service.DiscussPostMapperService;
+import com.nowcoder.community.service.ElasticsearchService;
+import com.nowcoder.community.service.UserService;
 import com.nowcoder.community.util.CommunityConstant;
+import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -30,6 +30,10 @@ public class CommentController implements CommunityConstant{
     HostHolder hostHolder;
     @Autowired
     private EventProducer eventProducer;
+
+    @Autowired
+    private UserService userService;
+
 
 
 
@@ -56,6 +60,16 @@ public class CommentController implements CommunityConstant{
         }
         event.setEntityUserId(entityUserId);
         eventProducer.sendEvent(event);
+
+        //将帖子数据提交到es服务器
+        if(comment.getEntityType() == ENTITY_TYPE_COMMENT) {
+            event = new Event();
+            event.setTopic(TOPIC_TYPE_POST)
+                    .setUserId(comment.getUserId())
+                    .setEntityType(ENTITY_TYPE_COMMENT)
+                    .setEntityId(discussPostId);
+            eventProducer.sendEvent(event);
+        }
         return "redirect:/discuss/detail/" + discussPostId;
     }
 
@@ -83,6 +97,11 @@ public class CommentController implements CommunityConstant{
                 list.add(map);
             }
         }
+        User user = userService.findUserById(userId);
+        if(user == null){
+            return CommunityUtil.getJSONString(1,"该用户不存在！");
+        }
+        model.addAttribute("user",user);
         model.addAttribute("comment",list);
         return "/site/my-reply";
     }

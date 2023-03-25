@@ -1,18 +1,14 @@
 package com.nowcoder.community.controller;
 
 import com.nowcoder.community.annotation.LoginRequired;
-import com.nowcoder.community.entity.Comment;
-import com.nowcoder.community.entity.DiscussPost;
-import com.nowcoder.community.entity.Page;
-import com.nowcoder.community.entity.User;
-import com.nowcoder.community.service.CommentService;
-import com.nowcoder.community.service.DiscussPostMapperService;
-import com.nowcoder.community.service.LikeService;
-import com.nowcoder.community.service.UserService;
+import com.nowcoder.community.entity.*;
+import com.nowcoder.community.event.EventProducer;
+import com.nowcoder.community.service.*;
 import com.nowcoder.community.util.CommunityConstant;
 import com.nowcoder.community.util.CommunityUtil;
 import com.nowcoder.community.util.HostHolder;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -41,6 +37,8 @@ public class DiscussPostController implements CommunityConstant {
     @Autowired
     private LikeService likeService;
 
+    @Autowired
+    private EventProducer eventProducer;
 
     @RequestMapping(path = "/add" , method = RequestMethod.POST)
     @ResponseBody
@@ -56,8 +54,14 @@ public class DiscussPostController implements CommunityConstant {
         discussPost.setContent(content);
         discussPost.setCreateTime(new Date());
         discussPost.setUserId(user.getId());
-        //报错未来统一处理
         discussPostMapperService.addDiscussPost(discussPost);
+        //将帖子数据提交到es服务器
+        Event event = new Event();
+        event.setTopic(TOPIC_TYPE_POST)
+                .setUserId(discussPost.getUserId())
+                .setEntityType(ENTITY_TYPE_COMMENT)
+                .setEntityId(discussPost.getId());
+        eventProducer.sendEvent(event);
         return CommunityUtil.getJSONString(0,"发布成功");
     }
 
@@ -155,7 +159,12 @@ public class DiscussPostController implements CommunityConstant {
                 list.add(map);
             }
         }
+        User user = userService.findUserById(userId);
+        if(user == null){
+            return CommunityUtil.getJSONString(1,"该用户不存在！");
+        }
         model.addAttribute("postList",list);
+        model.addAttribute("user",user);
         return "/site/my-post";
     }
 
