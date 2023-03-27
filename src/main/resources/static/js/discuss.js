@@ -1,4 +1,3 @@
-
 function like(btn, entityType, entityId, entityUserId, postId) {
     $.post(
         CONTEXT_PATH + '/like',
@@ -14,3 +13,6 @@ function like(btn, entityType, entityId, entityUserId, postId) {
         }
     )
 }
+
+
+

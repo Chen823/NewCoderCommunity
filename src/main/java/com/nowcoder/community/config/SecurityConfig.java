@@ -44,7 +44,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter implements Comm
                         AUTHORITY_ADMIN,
                         AUTHORITY_MODERATOR,
                         AUTHORITY_USER
-                ).anyRequest().permitAll().and().csrf().disable();
+                ).antMatchers(
+                    //加精 置顶
+                    "/discuss/top",
+                "/discuss/wonderful"
+                ).hasAnyAuthority(
+                    AUTHORITY_MODERATOR
+                ).antMatchers(
+                    //删帖
+                "/discuss/delete"
+                ).hasAnyAuthority(
+                        AUTHORITY_ADMIN
+                ).
+                anyRequest().permitAll().and().csrf().disable();
         //处理权限不足
         http.exceptionHandling()
                 .authenticationEntryPoint(new AuthenticationEntryPoint() {

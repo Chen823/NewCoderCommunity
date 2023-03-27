@@ -56,6 +56,19 @@ public interface CommunityConstant {
      * 主题 帖子
      */
     String TOPIC_TYPE_POST = "post";
+
+    /**
+     * 主题 置顶
+     */
+    String TOPIC_TYPE_TOP = "top";
+    /**
+     * 主题 置顶
+     */
+    String TOPIC_TYPE_WONDERFUL = "wonderful";
+    /**
+     * 主题 删除帖子
+     */
+    String TOPIC_TYPE_DELETE = "delete";
     /**
      * 权限 普通用户
      */

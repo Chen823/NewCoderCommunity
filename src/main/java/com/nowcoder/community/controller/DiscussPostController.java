@@ -168,5 +168,54 @@ public class DiscussPostController implements CommunityConstant {
         return "/site/my-post";
     }
 
+    //将帖子设置为置顶/取消置顶
+    @RequestMapping(path = "/top" , method = RequestMethod.POST)
+    @ResponseBody
+    public String setTop(int postId, int type){
+        DiscussPost post = discussPostMapperService.findDiscussPostById(postId);
+        type = type == 0 ? 1 : 0;
+        discussPostMapperService.updateType(postId,type);
+        //将帖子数据提交到es服务器
+        Event event = new Event();
+        event.setTopic(TOPIC_TYPE_TOP)
+                .setUserId(post.getUserId())
+                .setEntityType(ENTITY_TYPE_COMMENT)
+                .setEntityId(post.getId());
+        eventProducer.sendEvent(event);
+        return CommunityUtil.getJSONString(0,"设置成功！");
+    }
+
+    //将帖子设置为加精/取消加精
+    @RequestMapping(path = "/wonderful" , method = RequestMethod.POST)
+    @ResponseBody
+    public String setWonderful(int postId, int status){
+        DiscussPost post = discussPostMapperService.findDiscussPostById(postId);
+        status = status == 0 ? 1 : 0;
+        discussPostMapperService.updateStatus(postId,status);
+        //将帖子数据提交到es服务器
+        Event event = new Event();
+        event.setTopic(TOPIC_TYPE_WONDERFUL)
+                .setUserId(post.getUserId())
+                .setEntityType(ENTITY_TYPE_COMMENT)
+                .setEntityId(post.getId());
+        eventProducer.sendEvent(event);
+        return CommunityUtil.getJSONString(0,"设置成功！");
+    }
+
+    //将帖子删除
+    @RequestMapping(path = "/delete" , method = RequestMethod.POST)
+    @ResponseBody
+    public String setDelete(int postId){
+        DiscussPost post = discussPostMapperService.findDiscussPostById(postId);
+        discussPostMapperService.updateStatus(postId,2);
+        //将帖子数据提交到es服务器
+        Event event = new Event();
+        event.setTopic(TOPIC_TYPE_DELETE)
+                .setUserId(post.getUserId())
+                .setEntityType(ENTITY_TYPE_COMMENT)
+                .setEntityId(post.getId());
+        eventProducer.sendEvent(event);
+        return CommunityUtil.getJSONString(0,"删除成功！");
+    }
 
 }

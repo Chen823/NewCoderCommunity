@@ -72,7 +72,7 @@ public class EventConsumer implements CommunityConstant {
         messageService.addMessage(message);
     }
 
-    @KafkaListener(topics = {TOPIC_TYPE_POST})
+    @KafkaListener(topics = {TOPIC_TYPE_POST,TOPIC_TYPE_TOP,TOPIC_TYPE_WONDERFUL})
     public void sendPostEvent(ConsumerRecord record){
         //record判空
         if(record == null || record.value() == null){
@@ -90,6 +90,25 @@ public class EventConsumer implements CommunityConstant {
         int postId = event.getEntityId();
         DiscussPost post = discussPostMapperService.findDiscussPostById(postId);
         elasticsearchService.savePost(post);
+    }
+
+    @KafkaListener(topics = {TOPIC_TYPE_DELETE})
+    public void sendPostDeleteEvent(ConsumerRecord record){
+        //record判空
+        if(record == null || record.value() == null){
+            logger.error("内容不能为空!");
+            return;
+        }
+        //event判空
+        Event event = JSONObject.parseObject(record.value().toString(),Event.class);
+        if(event == null){
+            logger.error("事件不能为空");
+            return;
+        }
+
+        //保存到es服务器
+        int postId = event.getEntityId();
+        elasticsearchService.deletePost(postId);
     }
 
 }
